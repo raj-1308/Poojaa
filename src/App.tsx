@@ -3,7 +3,7 @@ import Footer from './components/Footer';
 import Header from './components/Header';
 import ContactLinks from './components/ContactLinks';
 import SectionHeading from './components/SectionHeading';
-import { LanguageProvider, localize, useLanguage } from './LanguageContext';
+import { LanguageProvider, localize, useLanguage, type Language } from './LanguageContext';
 import type { ImageKey } from './data/imageAssets';
 import {
   contact,
@@ -34,6 +34,39 @@ function useCurrentPath() {
   }, []);
 
   return path;
+}
+
+function AcharyaPhotoSlideshow({ language }: { language: Language }) {
+  const label = localize(
+    language,
+    'आचार्य जी के हारमोनियम के साथ भजन गाते हुए ',
+    'photos of Acharya Ji singing Bhajans with a harmonium',
+  );
+
+  return (
+    <div className="acharya-photo-carousel" role="img" aria-label={label}>
+      <img
+        className="acharya-photo-slide acharya-photo-red"
+        src={images.acharyaHeroStage}
+        width={imageDimensions.acharyaHeroStage.width}
+        height={imageDimensions.acharyaHeroStage.height}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        decoding="async"
+      />
+      <img
+        className="acharya-photo-slide acharya-photo-white"
+        src={images.acharyaPortrait}
+        width={imageDimensions.acharyaPortrait.width}
+        height={imageDimensions.acharyaPortrait.height}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        decoding="async"
+      />
+    </div>
+  );
 }
 
 const heroSlides: Array<{
@@ -377,40 +410,64 @@ function HomePage() {
         </div>
       </section>
 
-      <section className="section alt">
-        <div className="wrap">
-          <div data-reveal>
-            <SectionHeading
-              eyebrow={text('झलकियाँ', 'Gallery')}
-              title={text('पूजा के कुछ पावन क्षण', 'Sacred moments from our Pujas')}
-              align="center"
-            />
+     
+<section className="section alt">
+  <div className="wrap">
+    <div data-reveal>
+      <SectionHeading
+        eyebrow={text('झलकियाँ', 'Gallery')}
+        title={text('पूजा के कुछ पावन क्षण', 'Sacred moments from our Pujas')}
+        align="center"
+      />
+    </div>
+
+    <div
+      className="gallery-marquee"
+      role="region"
+      aria-label={text('पूजा की तस्वीरें', 'Puja photo gallery')}
+    >
+      <div className="gallery-marquee-track">
+        {[false, true].map((duplicate) => (
+          <div
+            className="gallery-marquee-set"
+            key={duplicate ? 'duplicate' : 'original'}
+            aria-hidden={duplicate || undefined}
+          >
+            {galleryImages.map((image) => (
+              <div
+                className="preview-image-wrap"
+                key={`${duplicate ? 'duplicate-' : ''}${image.image}`}
+              >
+                <img
+                  src={images[image.image]}
+                  srcSet={imageSrcSets[image.image]}
+                  sizes="(max-width: 640px) 78vw, (max-width: 1000px) 34vw, 300px"
+                  style={
+                    image.focus
+                      ? { objectPosition: image.focus }
+                      : undefined
+                  }
+                  alt={
+                    duplicate
+                      ? ''
+                      : language === 'hi'
+                        ? image.alt
+                        : image.altEn
+                  }
+                  width={imageDimensions[image.image].width}
+                  height={imageDimensions[image.image].height}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+            ))}
           </div>
-          <div className="gallery-marquee" role="region" aria-label={text('पूजा की तस्वीरें', 'Puja photo gallery')}>
-            <div className="gallery-marquee-track">
-              {[false, true].map((duplicate) => (
-                <div className="gallery-marquee-set" key={duplicate ? 'duplicate' : 'original'} aria-hidden={duplicate || undefined}>
-                  {galleryImages.map((image) => (
-                    <div className="preview-image-wrap" key={`${duplicate ? 'duplicate-' : ''}${image.image}`}>
-                      <img
-                        src={images[image.image]}
-                        srcSet={imageSrcSets[image.image]}
-                        sizes="(max-width: 640px) 78vw, (max-width: 1000px) 34vw, 300px"
-                        style={image.focus ? { objectPosition: image.focus } : undefined}
-                        alt={duplicate ? '' : language === 'hi' ? image.alt : image.altEn}
-                        width={imageDimensions[image.image].width}
-                        height={imageDimensions[image.image].height}
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
     </main>
   );
 }
@@ -443,21 +500,8 @@ function ParichayPage() {
             )}
           </p>
         </div>
-        <div className="portrait-box narrow">
-          <img
-            className="intro-portrait"
-            src={images.acharyaPortrait}
-            srcSet={imageSrcSets.acharyaPortrait}
-            sizes="(max-width: 900px) min(88vw, 360px), 360px"
-            width={imageDimensions.acharyaPortrait.width}
-            height={imageDimensions.acharyaPortrait.height}
-            alt={text(
-              'हारमोनियम के साथ भजन गाते आचार्य पंडित श्री जयनारायण पांडेय',
-              'Acharya Pandit Shri Jaynarayan Pandey singing a Bhajan with a harmonium',
-            )}
-            loading="lazy"
-            decoding="async"
-          />
+        <div className="portrait-box narrow photo-frame">
+          <AcharyaPhotoSlideshow language={language} />
         </div>
       </section>
 
@@ -639,7 +683,7 @@ function ServiceDetailPage({ slug }: { slug: string }) {
               {text('इस पूजा हेतु अनुरोध करें', 'Enquire about this Puja')}
             </a>
             <a className="button secondary" href={`#/samagri?service=${service.slug}`}>
-              {text('पूजा सामग्री सूची', 'Puja checklist')}
+              {text('पूजा सामग्री सूची', 'Materials list')}
             </a>
           </div>
         </div>
@@ -665,65 +709,29 @@ function SamagriPage() {
   const [selectedService, setSelectedService] = useState(services[0].slug);
   const [query, setQuery] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
-  const storageKey = `samagri-${selectedService}`;
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(storageKey);
-      if (raw) {
-        setSelections(JSON.parse(raw));
-      } else {
-        setSelections({});
-      }
-    } catch {
-      setSelections({});
-    }
-  }, [storageKey]);
-
-  const [selections, setSelections] = useState<Record<string, boolean>>({});
-
-  const selectedCount = useMemo(
-    () => materials.filter((item) => selections[item]).length,
-    [selections],
-  );
 
   const filteredMaterials = materials
     .map((item, index) => ({ item, label: language === 'hi' ? item : materialsEn[index] }))
     .filter(({ label }) => label.toLowerCase().includes(query.trim().toLowerCase()));
   const service = services.find((entry) => entry.slug === selectedService) ?? services[0];
 
-  const updateSelection = (item: string, checked: boolean) => {
-    const next = { ...selections, [item]: checked };
-    setSelections(next);
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(next));
-    } catch {
-      // ignore storage failures
-    }
-  };
-
-  const resetSelection = () => {
-    setSelections({});
-    localStorage.removeItem(storageKey);
-  };
-
   const shareText =
     language === 'hi'
-      ? `${service.name} — पूजा सामग्री (प्रारंभिक सूची)\n${materials
-          .map((item) => (selections[item] ? '[x] ' : '[ ] ') + item)
-          .join('\n')}\nअंतिम सूची आयोजन के अनुसार आचार्य जी बताएँगे।`
-      : `${service.nameEn} — Puja checklist (preliminary)\n${materials
-          .map((item, index) => (selections[item] ? '[x] ' : '[ ] ') + materialsEn[index])
-          .join('\n')}\nAcharya Ji will confirm the final checklist based on the event.`;
+      ? `${service.name} — यजमान द्वारा उपलब्ध कराई जाने वाली सामग्री\n${materials
+          .map((item) => `• ${item}`)
+          .join('\n')}\nअंतिम सामग्री और मात्रा आयोजन के अनुसार आचार्य जी बताएँगे।`
+      : `${service.nameEn} — Materials for the host to arrange\n${materials
+          .map((_, index) => `• ${materialsEn[index]}`)
+          .join('\n')}\nAcharya Ji will confirm the final items and quantities for the event.`;
 
   const copyList = async () => {
     try {
       await navigator.clipboard.writeText(shareText);
-      setStatusMessage(text('सूची कॉपी हो गई।', 'Checklist copied.'));
+      setStatusMessage(text('सामग्री सूची कॉपी हो गई।', 'Materials list copied.'));
     } catch {
       setStatusMessage(text(
-        'कॉपी नहीं हो सकी; कृपया सूची चुनकर मैन्युअल कॉपी करें।',
-        'Could not copy the checklist. Please select and copy it manually.',
+        'कॉपी नहीं हो सकी; कृपया ऊपर दी गई सामग्री सूची चुनकर मैन्युअल कॉपी करें।',
+        'Could not copy the list. Please select and copy the materials shown above.',
       ));
     }
   };
@@ -745,7 +753,7 @@ function SamagriPage() {
       <div className="crumbs">
         <a href="#/pujan">{text('पूजन', 'Puja')}</a>
         <span>•</span>
-        <span>{text('पूजा सामग्री', 'Puja checklist')}</span>
+        <span>{text('पूजा सामग्री', 'Materials list')}</span>
       </div>
       <div className="eyebrow">{text('पूजन सामग्री', 'Puja materials')}</div>
       <h1>{text('तैयारी सरल, पूजन निश्चिंत।', 'Prepare with ease. Worship with peace.')}</h1>
@@ -780,40 +788,30 @@ function SamagriPage() {
 
       <div className="note-box full-note">
         {text(
-          `सामान्य प्रारंभिक सूची • ${service.name} की अंतिम सूची और मात्रा आचार्य जी से चर्चा के बाद तय होगी।`,
-          `Preliminary checklist • The final items and quantities for ${service.nameEn} will be confirmed with Acharya Ji.`,
+          `यजमान द्वारा उपलब्ध कराई जाने वाली सामान्य सामग्री • ${service.name} की अंतिम सामग्री और मात्रा आचार्य जी से चर्चा के बाद तय होगी।`,
+          `General items for the host to arrange • Acharya Ji will confirm the final items and quantities for ${service.nameEn}.`,
         )}
       </div>
-      <p className="result-status">
-        {text(`तैयार (${selectedCount}) • शेष (${materials.length - selectedCount})`, `Ready (${selectedCount}) • Remaining (${materials.length - selectedCount})`)}
-      </p>
+      <h2 className="materials-heading">
+        {text('यजमान द्वारा उपलब्ध कराई जाने वाली सामग्री', 'Items for the host to arrange')}
+      </h2>
 
-      <div className="checklist-grid">
+      <ul className="material-list">
         {filteredMaterials.map(({ item, label }) => (
-          <label key={item} className={selections[item] ? 'check-item selected' : 'check-item'}>
-            <input
-              type="checkbox"
-              checked={Boolean(selections[item])}
-              onChange={(event) => updateSelection(item, event.target.checked)}
-            />
-            <span>{label}</span>
-          </label>
+          <li key={item} className="material-list-item">{label}</li>
         ))}
-      </div>
+      </ul>
 
       {!filteredMaterials.length && (
-        <div className="note-box">{text('इस नाम की सामग्री सूची में नहीं है।', 'No checklist item matches this search.')}</div>
+        <div className="note-box">{text('इस नाम की सामग्री सूची में नहीं है।', 'No materials match this search.')}</div>
       )}
 
       <div className="button-row wrap-buttons">
-        <button type="button" className="button secondary" onClick={resetSelection}>
-          {text('रीसेट', 'Reset')}
-        </button>
         <button type="button" className="button secondary" onClick={() => window.print()}>
           {text('प्रिंट करें', 'Print')}
         </button>
         <button type="button" className="button secondary" onClick={copyList}>
-          {text('सूची कॉपी करें', 'Copy checklist')}
+          {text('सूची कॉपी करें', 'Copy list')}
         </button>
         <button type="button" className="button secondary" onClick={shareList}>
           {text('साझा करें', 'Share')}
@@ -1206,18 +1204,7 @@ function BhajanPage() {
       <section className="ensemble-layout">
         <div className="emblem-wrap">
           <div className="ensemble-image-frame">
-            <img
-              src={images.acharyaPortrait}
-              alt={text(
-                'हारमोनियम के साथ भजन गाते आचार्य पंडित श्री जयनारायण पांडेय',
-                'Acharya Pandit Shri Jaynarayan Pandey singing a Bhajan with a harmonium',
-              )}
-              className="ensemble-photo"
-              width={imageDimensions.acharyaPortrait.width}
-              height={imageDimensions.acharyaPortrait.height}
-              loading="lazy"
-              decoding="async"
-            />
+            <AcharyaPhotoSlideshow language={language} />
           </div>
         </div>
         <div>
@@ -1253,7 +1240,7 @@ function AppContent() {
       '/': { hi: 'मुख पृष्ठ', en: 'Home' },
       '/parichay': { hi: 'परिचय', en: 'About' },
       '/pujan': { hi: 'पूजन', en: 'Puja' },
-      '/samagri': { hi: 'पूजा सामग्री', en: 'Puja checklist' },
+      '/samagri': { hi: 'पूजा सामग्री', en: 'Materials list' },
       '/bhajan': { hi: 'भजन', en: 'Bhajan' },
       '/gallery': { hi: 'झलकियाँ', en: 'Gallery' },
       '/ayojan': { hi: 'आयोजन अनुरोध', en: 'Event enquiry' },
